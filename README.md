@@ -1,59 +1,48 @@
-# Mac dotfiles
+# macOS terminal dotfiles
 
-Ghostty, cmux, Neovim, a Meslo Nerd Font, and a Zsh prompt with Powerlevel10k, autosuggestions, syntax highlighting, and zoxide.
+My Ghostty, cmux, Neovim, and Zsh setup for working on several Git branches at once. I keep the main checkout open and give each task its own folder. From a project in cmux, `wt fix/login codex` opens a sidebar workspace with Neovim on the left and Codex on the right, both in the checkout for `fix/login`.
 
-## Set up a Mac
+## Install
 
-After company onboarding, install [Homebrew](https://brew.sh) if needed and follow its shell instructions so `brew` is on your PATH. With Git and SSH access to this private repo, run:
+You’ll need macOS, Git, and [Homebrew](https://brew.sh) available in your shell. If you want to maintain your own version, fork it and use your fork’s URL below.
 
 ```sh
-git clone git@github.com:kennedynguyen1/dotfiles.git ~/dotfiles
+git clone https://github.com/kennedynguyen1/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./setup
 ```
 
-Keep the clone in a stable location. Setup skips Ghostty and cmux when their app bundles already exist in `/Applications` or `~/Applications`. Homebrew supplies missing dependencies with upgrades disabled.
+Open a new Zsh terminal when setup finishes. Run `nvim .` inside a project to start editing. Keep the clone in place because your live settings link back to it.
 
-| Live config | File in this repo |
+The [Brewfile](Brewfile) installs the terminal apps, Neovim, Meslo Nerd Font, and Zsh tools. On a fresh Mac, the [installer](setup) puts a pinned [Kickstart](https://github.com/nvim-lua/kickstart.nvim) config in a separate Neovim checkout. If you already have a Neovim config, setup keeps it. Personal additions such as Diffview are separate.
+
+**Already have dotfiles?** Setup checks the three link destinations before installing packages. If a file differs or a link points elsewhere, it stops and identifies the conflict. For a differing file, it prints a command you can run to compare it privately. Merge or move the file, then rerun `./setup`. The installer appends a loader to your existing `.zshrc` and skips Ghostty or cmux if the app is already installed.
+
+## Work on a task
+
+Open a **Zsh shell in cmux**, change into the Git project you want to develop, and run one of the following. Install and sign in to your preferred agent CLI separately.
+
+| Command | Result |
 | --- | --- |
-| `~/.p10k.zsh` | `zsh/p10k.zsh` |
-| `~/.config/ghostty/config` | `ghostty/config` |
-| `~/.config/zsh/personal.zsh` | `zsh/personal.zsh` |
+| `wt fix/login claude` or `wt fix/login codex` | Open a new workspace for that branch using the agent’s normal permissions. |
+| `git worktree list` | See which branch is checked out in each folder. |
+| `dwt fix/login` | Remove the clean task checkout from anywhere in the same repo. Keep the branch for later. |
+| `dwt` | Inside a task checkout, remove it and move the shell to the primary checkout. In the primary checkout, list the worktrees. |
 
-Setup links missing files and converts byte-identical files to symlinks. If setup cannot confirm the files are identical, it stops before installing anything and prints a command you can run to compare them locally. Review and merge the changes, or move the local file aside, then rerun. A link pointing somewhere else also requires review. The paths under `~/.config` follow `XDG_CONFIG_HOME` when set.
+A **worktree** is a folder where Git checks out one branch. If an agent already created one, `wt` finds it by branch name and opens it with your edits intact. Otherwise, it creates a sibling folder such as `../wt-fix-login`. It uses the local branch first, then the branch on `origin`. A brand-new branch starts at the latest commit on the default branch of `origin`. Both helpers protect the primary checkout, `main`, and the default branch of `origin`. When `origin` is configured, they need access to it.
 
-Your local `.zshrc` loads the linked shell settings through a single guarded line. Open a new terminal to use the prompt. If you already initialize these plugins yourself, remove their duplicate initialization after reviewing the hook.
+**Agent permissions:** Uppercase `CLAUDE` or `CODEX` bypasses approval prompts. `CODEX` also disables its sandbox. A worktree separates Git checkouts, but the agent can still access other files with your account’s permissions.
 
-A fresh Neovim install gets [Kickstart](https://github.com/nvim-lua/kickstart.nvim) at commit `8e35dbedb7966e3a95e1f26f9fc1179ab6c68db4`. Existing Neovim directories are preserved. Neovim edits live in that separate checkout. cmux currently uses its defaults.
+**Before cleanup:** Save your buffers and stop the agent. `dwt` refuses locked worktrees and changes reported by Git, including untracked files. Ignored files such as a worktree-only `.env` can be deleted with the folder. Close the cmux workspace yourself when you’re done.
 
-## Start a task in cmux
+## Customize and update
 
-Run these from anywhere inside the repo. Install the selected agent CLI first.
+| To change | Edit in this repo | Linked location |
+| --- | --- | --- |
+| Terminal font and colors | [ghostty/config](ghostty/config) | `~/.config/ghostty/config` |
+| Prompt | [zsh/p10k.zsh](zsh/p10k.zsh) | `~/.p10k.zsh` |
+| Autosuggestions, syntax highlighting, zoxide, and the worktree helpers | [zsh/personal.zsh](zsh/personal.zsh) | `~/.config/zsh/personal.zsh` |
 
-| Command | Behavior |
-| --- | --- |
-| `wt fix/login claude` or `wt fix/login codex` | Open a fresh cmux workspace with Neovim on the left and the selected agent on the right. Reuse the worktree registered for that branch, including one created by an agent under a different folder name. |
-| `dwt fix/login` | Remove the branch’s clean worktree and keep the branch. If the current shell is inside it, move the shell to the primary checkout. |
-| `dwt` | In a task worktree, remove that checkout. In the primary checkout, list worktrees for you to choose from. |
+The paths above use the default config directory. Setup respects `XDG_CONFIG_HOME` and uses `ZDOTDIR` for the Zsh startup file when set.
 
-If the task has no checkout, `wt` creates a sibling directory such as `wt-fix-login`. It uses the existing local branch first, then a branch on `origin`, and otherwise starts a new branch from the remote default commit. Both commands protect `main`, the primary checkout, and the default branch of `origin`. When `origin` is configured they contact it to verify its current default. A detached worktree needs a branch name before these commands can target it.
-
-Save your buffers and stop the agent before cleanup. Locked worktrees, uncommitted changes, and untracked files reported by Git block removal. Git-ignored files such as a local `.env` can be removed with the directory. Close the cmux workspace yourself when finished.
-
-Lowercase `claude` and `codex` use the CLI’s normal permission settings. Uppercase `CLAUDE` and `CODEX` explicitly bypass approval prompts. Uppercase `CODEX` also disables its sandbox. In bypass mode, either agent can affect files outside the worktree with your account’s permissions.
-
-## Share a change
-
-Edit a linked file at its usual path, then review and push from the repo. For example:
-
-```sh
-cd ~/dotfiles
-git diff
-git add zsh/p10k.zsh
-git commit -m "Adjust prompt layout"
-git push
-```
-
-On the other Mac, run `git pull --ff-only` in the clone. The linked files reflect the pull immediately. Open a new shell for prompt changes. Rerun `./setup` when the Brewfile or list of links changes.
-
-If an editor replaces a link with a regular file, `./setup` will compare it with the repo copy. Merge the edit and rerun to restore the link.
+To update an existing install, run `git pull --ff-only` in the clone and open a fresh shell. Rerun `./setup` when the Brewfile or linked paths change. To sync your own customizations across Macs, commit them to your fork and pull on the other machine.
