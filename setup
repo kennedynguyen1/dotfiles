@@ -1,0 +1,87 @@
+#!/bin/bash
+set -euo pipefail
+
+repo=$(cd "$(dirname "$0")" && pwd -P)
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+zshrc=${ZDOTDIR:-$HOME}/.zshrc
+hook='[[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/personal.zsh" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/personal.zsh"'
+kickstart=8e35dbedb7966e3a95e1f26f9fc1179ab6c68db4
+
+if ! command -v brew >/dev/null; then
+  echo "Install Homebrew from https://brew.sh, follow its shellenv instructions, then rerun ./setup." >&2
+  exit 1
+fi
+
+# Keep two setup runs from racing to install the same files.
+lock="$HOME/.dotfiles-setup.lock"
+if ! /usr/bin/shlock -p "$$" -f "$lock"; then
+  echo "Another setup is running, or the setup lock is inaccessible: $lock" >&2
+  exit 1
+fi
+tmp=''
+cleanup() {
+  [[ -z "$tmp" ]] || rm -rf "$tmp"
+  rm -f "$lock"
+}
+trap cleanup EXIT
+
+sources=("$repo/zsh/p10k.zsh" "$repo/ghostty/config" "$repo/zsh/personal.zsh")
+targets=("$HOME/.p10k.zsh" "$config/ghostty/config" "$config/zsh/personal.zsh")
+
+# Inspect every destination before installing or linking anything.
+for i in "${!targets[@]}"; do
+  target=${targets[i]}
+  source_file=${sources[i]}
+  if [[ -L "$target" ]]; then
+    if [[ "$target" -ef "$source_file" ]]; then continue; fi
+    echo "Existing link points elsewhere: $target -> $(readlink "$target")" >&2
+    exit 1
+  elif [[ -f "$target" ]]; then
+    if ! diff -u "$target" "$source_file"; then
+      echo "Resolve the difference at $target, then rerun ./setup." >&2
+      exit 1
+    fi
+  elif [[ -e "$target" ]]; then
+    echo "Expected a file at $target. Move it aside before setup." >&2
+    exit 1
+  fi
+done
+if [[ -e "$zshrc" || -L "$zshrc" ]]; then
+  [[ -f "$zshrc" ]] || { echo "Inspect $zshrc before setup." >&2; exit 1; }
+fi
+
+brew bundle check --no-upgrade --file="$repo/Brewfile" >/dev/null || brew bundle install --no-upgrade --file="$repo/Brewfile"
+
+mkdir -p "$config"
+nvim="$config/nvim"
+if [[ ! -e "$nvim" && ! -L "$nvim" ]]; then
+  tmp=$(mktemp -d "$config/.kickstart.XXXXXXXX")
+  git clone --quiet --no-checkout https://github.com/nvim-lua/kickstart.nvim.git "$tmp/nvim"
+  git -C "$tmp/nvim" checkout --quiet --detach "$kickstart"
+  mv "$tmp/nvim" "$nvim"
+elif [[ "$(git -C "$nvim" rev-parse HEAD 2>/dev/null || true)" != "$kickstart" ]] ||
+     [[ -n "$(git -C "$nvim" status --porcelain 2>/dev/null)" ]]; then
+  echo "Keeping your existing Neovim configuration at $nvim."
+fi
+
+for i in "${!targets[@]}"; do
+  target=${targets[i]}
+  [[ -L "$target" && "$target" -ef "${sources[i]}" ]] && continue
+  mkdir -p "$(dirname "$target")"
+  ln -shf "${sources[i]}" "$target"
+  echo "Linked $target"
+done
+
+if ! grep -Fqx "$hook" "$zshrc" 2>/dev/null; then
+  mkdir -p "$(dirname "$zshrc")"
+  if [[ ! -s "$zshrc" ]]; then
+    cat >> "$zshrc" <<'ZSH'
+# Start the cached Powerlevel10k prompt early in a fresh shell.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+ZSH
+  fi
+  printf '\n%s\n' "$hook" >> "$zshrc"
+  echo "Enabled personal shell settings in $zshrc"
+fi
