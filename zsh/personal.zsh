@@ -45,9 +45,14 @@ wt() {
   git fetch --no-tags --no-write-fetch-head origin "$base" || return 1
   git worktree add --no-track -b "$branch" "$tree" "$base" || return 1
 
+  local agent_command
+  case $agent in
+    claude) agent_command='claude --dangerously-skip-permissions' ;;
+    codex)  agent_command='codex --dangerously-bypass-approvals-and-sandbox' ;;
+  esac
   local layout='{"direction":"horizontal","children":[
     {"pane":{"surfaces":[{"type":"terminal","command":"nvim ."}]}},
-    {"pane":{"surfaces":[{"type":"terminal","command":"'"$agent"'"}]}}
+    {"pane":{"surfaces":[{"type":"terminal","command":"'"$agent_command"'"}]}}
   ]}'
   cmux new-workspace --name "$branch" --cwd "$tree" --layout "$layout" --focus true || {
     print -u2 -r -- "Worktree created at $tree. To open it: cd ${(q)tree}"

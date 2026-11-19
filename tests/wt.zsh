@@ -24,7 +24,10 @@ assert args["--focus"] == "true"
 layout = json.loads(args["--layout"])
 assert layout["direction"] == "horizontal"
 assert [p["pane"]["surfaces"][0]["command"] for p in layout["children"]] == [
-    "nvim .", os.environ["EXPECTED_AGENT"]
+    "nvim .", {
+        "claude": "claude --dangerously-skip-permissions",
+        "codex": "codex --dangerously-bypass-approvals-and-sandbox",
+    }[os.environ["EXPECTED_AGENT"]]
 ]
 sys.exit(int(os.environ.get("FAIL_LAUNCH", "0")))
 PY
