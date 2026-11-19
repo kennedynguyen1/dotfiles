@@ -25,8 +25,10 @@ layout = json.loads(args["--layout"])
 assert layout["direction"] == "horizontal"
 assert [p["pane"]["surfaces"][0]["command"] for p in layout["children"]] == [
     "nvim .", {
-        "claude": "claude --dangerously-skip-permissions",
-        "codex": "codex --dangerously-bypass-approvals-and-sandbox",
+        "claude": "claude",
+        "codex": "codex",
+        "CLAUDE": "claude --dangerously-skip-permissions",
+        "CODEX": "codex --dangerously-bypass-approvals-and-sandbox",
     }[os.environ["EXPECTED_AGENT"]]
 ]
 sys.exit(int(os.environ.get("FAIL_LAUNCH", "0")))
@@ -48,7 +50,8 @@ for agent in claude codex; do
   [[ $(git -C "$EXPECTED_TREE" rev-parse HEAD) == "$latest" ]]
   [[ $(git -C "$EXPECTED_TREE" branch --show-current) == "$EXPECTED_BRANCH" ]]
   [[ $(git branch --show-current) == local-feature ]]
-  wt "$EXPECTED_BRANCH" "$agent"
+  EXPECTED_AGENT=${agent:u}
+  wt "$EXPECTED_BRANCH" "$EXPECTED_AGENT"
 done
 # Git can register a worktree under any name. Preserve its local edits on open.
 export EXPECTED_TREE="$scratch/agent workspace" EXPECTED_BRANCH=feature/agent EXPECTED_AGENT=codex
@@ -94,9 +97,10 @@ if dwt remote-only; then exit 1; fi
 git worktree add -q "$scratch/default checkout" trunk
 git worktree add -qb main "$scratch/main-test" HEAD
 mkdir "$scratch/wt-taken"
-for args in 'invalid other' 'taken codex' 'bad..name codex'; do
+for args in 'invalid other' 'invalid Claude' 'invalid Codex' 'taken codex' 'bad..name codex'; do
   if wt ${=args}; then exit 1; fi
 done
+[[ ! -e "$scratch/wt-invalid" ]]
 for protected in main trunk local-feature; do
   if wt "$protected" codex; then exit 1; fi
   if dwt "$protected"; then exit 1; fi

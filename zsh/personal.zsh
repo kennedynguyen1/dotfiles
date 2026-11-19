@@ -61,11 +61,17 @@ _wt_resolve() {
 
 wt() {
   emulate -L zsh
-  if (( $# != 2 )) || [[ $2 != (claude|codex) ]]; then
-    print -u2 'Usage: wt <branch> <claude|codex>'
+  local agent_command
+  case ${2-} in
+    claude|codex) agent_command=$2 ;;
+    CLAUDE) agent_command='claude --dangerously-skip-permissions' ;;
+    CODEX) agent_command='codex --dangerously-bypass-approvals-and-sandbox' ;;
+  esac
+  if (( $# != 2 )) || [[ -z ${agent_command:-} ]]; then
+    print -u2 'Usage: wt <branch> <claude|codex|CLAUDE|CODEX> (uppercase bypasses approvals)'
     return 2
   fi
-  local branch=$1 agent=$2 primary='' tree='' default_tip='' remote_tip='' tool
+  local branch=$1 agent=${2:l} primary='' tree='' default_tip='' remote_tip='' tool
   _wt_resolve "$branch" || return 1
   for tool in cmux nvim "$agent"; do
     if ! whence -p "$tool" >/dev/null; then
@@ -93,11 +99,6 @@ wt() {
     fi
   fi
 
-  local agent_command
-  case $agent in
-    claude) agent_command='claude --dangerously-skip-permissions' ;;
-    codex)  agent_command='codex --dangerously-bypass-approvals-and-sandbox' ;;
-  esac
   local layout='{"direction":"horizontal","children":[
     {"pane":{"surfaces":[{"type":"terminal","command":"nvim ."}]}},
     {"pane":{"surfaces":[{"type":"terminal","command":"'"$agent_command"'"}]}}

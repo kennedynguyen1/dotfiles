@@ -40,7 +40,7 @@ If the task has no checkout, `wt` creates a sibling directory such as `wt-fix-lo
 
 Save your buffers and stop the agent before cleanup. Locked worktrees, uncommitted changes, and untracked files reported by Git block removal. Git-ignored files such as a local `.env` can be removed with the directory. Close the cmux workspace yourself when finished.
 
-Agents launched by `wt` skip tool approval prompts. Codex also runs without its sandbox. Either agent can affect files outside the worktree with your account's permissions.
+Lowercase `claude` and `codex` use the CLI’s normal permission settings. Uppercase `CLAUDE` and `CODEX` explicitly bypass approval prompts. Uppercase `CODEX` also disables its sandbox. In bypass mode, either agent can affect files outside the worktree with your account’s permissions.
 
 ## Share a change
 
