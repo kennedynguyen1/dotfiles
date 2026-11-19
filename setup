@@ -37,8 +37,8 @@ for i in "${!targets[@]}"; do
     echo "Existing link points elsewhere: $target -> $(readlink "$target")" >&2
     exit 1
   elif [[ -f "$target" ]]; then
-    if ! diff -u "$target" "$source_file"; then
-      echo "Resolve the difference at $target, then rerun ./setup." >&2
+    if ! cmp -s "$target" "$source_file"; then
+      printf 'Setup stopped. To compare the files locally, run:\n  diff -u %q %q\n' "$target" "$source_file" >&2
       exit 1
     fi
   elif [[ -e "$target" ]]; then

@@ -23,7 +23,9 @@ export PATH="$scratch/bin:$PATH"
 
 echo 'local config' > "$HOME/.p10k.zsh"
 if ./setup > "$scratch/conflict" 2>&1; then exit 1; fi
-grep -q 'Resolve the difference' "$scratch/conflict"
+grep -Fq "$HOME/.p10k.zsh" "$scratch/conflict"
+grep -Fq 'zsh/p10k.zsh' "$scratch/conflict"
+if grep -Fq 'local config' "$scratch/conflict"; then exit 1; fi
 [[ "$(cat "$HOME/.p10k.zsh")" == 'local config' && ! -e "$HOME/brew.calls" ]]
 
 cp zsh/p10k.zsh "$HOME/.p10k.zsh"

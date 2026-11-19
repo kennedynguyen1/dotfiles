@@ -20,7 +20,7 @@ Keep the clone in a stable location. Setup skips Ghostty and cmux when their app
 | `~/.config/ghostty/config` | `ghostty/config` |
 | `~/.config/zsh/personal.zsh` | `zsh/personal.zsh` |
 
-Setup links missing files and converts byte-identical files to symlinks. If a local file differs, setup prints a diff and stops before installing anything. Review and merge the changes, or move the local file aside, then rerun. A link pointing somewhere else also requires review. The paths under `~/.config` follow `XDG_CONFIG_HOME` when set.
+Setup links missing files and converts byte-identical files to symlinks. If setup cannot confirm the files are identical, it stops before installing anything and prints a command you can run to compare them locally. Review and merge the changes, or move the local file aside, then rerun. A link pointing somewhere else also requires review. The paths under `~/.config` follow `XDG_CONFIG_HOME` when set.
 
 Your local `.zshrc` loads the linked shell settings through a single guarded line. Open a new terminal to use the prompt. If you already initialize these plugins yourself, remove their duplicate initialization after reviewing the hook.
 
