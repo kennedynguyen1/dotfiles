@@ -28,7 +28,7 @@ A fresh Neovim install gets [Kickstart](https://github.com/nvim-lua/kickstart.nv
 
 ## Start a task in cmux
 
-From a Git repo in cmux, run `wt fix/login claude` or `wt fix/login codex`. Install the selected agent CLI first. The command creates the branch from the latest commit on the default branch of `origin`. For a repo called `myapp`, it opens a sibling checkout named `myapp-fix-login`, with Neovim on the left and the agent on the right. Local-only files such as `.env` stay in the original checkout.
+From a Git repo in cmux, run `wt fix/login claude` or `wt fix/login codex`. Install the selected agent CLI first. The command creates the branch from the latest commit on the default branch of `origin`. It opens a sibling checkout named `wt-fix-login`, with Neovim on the left and the agent on the right. Local-only files such as `.env` stay in the original checkout.
 
 Agents launched by `wt` skip tool approval prompts. Codex also runs without its sandbox. Either agent can affect files outside the worktree with your account's permissions.
 

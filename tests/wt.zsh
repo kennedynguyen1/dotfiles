@@ -43,22 +43,22 @@ git -C "$scratch/upstream" -c user.name=Test -c user.email=test@example.org comm
 latest=$(git -C "$scratch/upstream" rev-parse HEAD)
 
 for agent in claude codex; do
-  export EXPECTED_AGENT=$agent EXPECTED_BRANCH="fix/$agent" EXPECTED_TREE="$scratch/my app-fix-$agent"
+  export EXPECTED_AGENT=$agent EXPECTED_BRANCH="fix/$agent" EXPECTED_TREE="$scratch/wt-fix-$agent"
   wt "$EXPECTED_BRANCH" "$agent"
   [[ $(git -C "$EXPECTED_TREE" rev-parse HEAD) == "$latest" ]]
   [[ $(git -C "$EXPECTED_TREE" branch --show-current) == "$EXPECTED_BRANCH" ]]
   [[ $(git branch --show-current) == local-feature ]]
   if wt "$EXPECTED_BRANCH" "$agent"; then exit 1; fi
 done
-mkdir "$scratch/my app-taken"
+mkdir "$scratch/wt-taken"
 git -C "$scratch/upstream" branch remote-only
 for args in 'invalid other' 'taken codex' 'remote-only claude' 'bad..name codex'; do
   if wt ${=args}; then exit 1; fi
 done
-export EXPECTED_BRANCH=retry EXPECTED_TREE="$scratch/my app-retry" FAIL_LAUNCH=1
+export EXPECTED_BRANCH=retry EXPECTED_TREE="$scratch/wt-retry" FAIL_LAUNCH=1
 if wt retry codex; then exit 1; fi
 [[ $(git -C "$EXPECTED_TREE" branch --show-current) == retry ]]
 git remote set-url origin "$scratch/missing"
 if wt offline codex; then exit 1; fi
-[[ ! -e "$scratch/my app-offline" ]]
+[[ ! -e "$scratch/wt-offline" ]]
 print 'Worktree checks passed.'

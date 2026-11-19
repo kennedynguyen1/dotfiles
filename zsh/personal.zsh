@@ -19,7 +19,7 @@ wt() {
   [[ $(git check-ref-format --branch "$branch") == "$branch" && -n $branch ]] || return 1
   IFS= read -rd '' root < <(git worktree list --porcelain -z) || return 1
   root=${root#worktree }
-  tree="${root}-${branch//\//-}"
+  tree="${root:h}/wt-${branch//\//-}"
   if [[ -e $tree || -L $tree ]] || git show-ref --verify --quiet "refs/heads/$branch"; then
     print -u2 -r -- "Branch or folder already exists: $branch / $tree"
     return 1
