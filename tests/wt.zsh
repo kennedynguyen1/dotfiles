@@ -48,16 +48,67 @@ for agent in claude codex; do
   [[ $(git -C "$EXPECTED_TREE" rev-parse HEAD) == "$latest" ]]
   [[ $(git -C "$EXPECTED_TREE" branch --show-current) == "$EXPECTED_BRANCH" ]]
   [[ $(git branch --show-current) == local-feature ]]
-  if wt "$EXPECTED_BRANCH" "$agent"; then exit 1; fi
+  wt "$EXPECTED_BRANCH" "$agent"
 done
+# Git can register a worktree under any name. Preserve its local edits on open.
+export EXPECTED_TREE="$scratch/agent workspace" EXPECTED_BRANCH=feature/agent EXPECTED_AGENT=codex
+git worktree add -qb "$EXPECTED_BRANCH" "$EXPECTED_TREE" HEAD
+print 'first version' > "$EXPECTED_TREE/file"
+git -C "$EXPECTED_TREE" add file
+git -C "$EXPECTED_TREE" -c user.name=Test -c user.email=test@example.org commit -qm agent
+agent_tip=$(git -C "$EXPECTED_TREE" rev-parse HEAD)
+print 'unfinished' > "$EXPECTED_TREE/file"
+wt "$EXPECTED_BRANCH" codex
+[[ $(<"$EXPECTED_TREE/file") == unfinished && ! -e "$scratch/wt-feature-agent" ]]
+if dwt feature/agent; then exit 1; fi
+git -C "$EXPECTED_TREE" restore file
+touch "$EXPECTED_TREE/untracked"
+if dwt feature/agent; then exit 1; fi
+rm "$EXPECTED_TREE/untracked"
+git worktree lock "$EXPECTED_TREE"
+cd "$EXPECTED_TREE"
+if dwt; then exit 1; fi
+[[ $PWD == "$EXPECTED_TREE" ]]
+git worktree unlock "$EXPECTED_TREE"
+mkdir nested
+cd nested
+dwt
+[[ ! -e "$EXPECTED_TREE" && $PWD == "$scratch/my app" ]]
+[[ $(git rev-parse feature/agent) == "$agent_tip" ]]
+
+# Restore a local-only branch, and a remote-only branch with its own upstream.
+EXPECTED_TREE="$scratch/wt-feature-agent"
+wt feature/agent codex
+[[ $(git -C "$EXPECTED_TREE" rev-parse HEAD) == "$agent_tip" ]]
+git -C "$scratch/upstream" branch remote-only HEAD~1
+export EXPECTED_BRANCH=remote-only EXPECTED_TREE="$scratch/wt-remote-only"
+wt remote-only codex
+[[ $(git -C "$EXPECTED_TREE" rev-parse HEAD) == $(git -C "$scratch/upstream" rev-parse remote-only) ]]
+[[ $(git -C "$EXPECTED_TREE" rev-parse --abbrev-ref '@{u}') == origin/remote-only ]]
+cd src
+dwt remote-only
+[[ ! -e "$EXPECTED_TREE" && $PWD == "$scratch/my app/src" ]]
+if dwt remote-only; then exit 1; fi
+[[ $(dwt) == *feature/agent* ]]
+
+git worktree add -q "$scratch/default checkout" trunk
+git worktree add -qb main "$scratch/main-test" HEAD
 mkdir "$scratch/wt-taken"
-git -C "$scratch/upstream" branch remote-only
-for args in 'invalid other' 'taken codex' 'remote-only claude' 'bad..name codex'; do
+for args in 'invalid other' 'taken codex' 'bad..name codex'; do
   if wt ${=args}; then exit 1; fi
 done
+for protected in main trunk local-feature; do
+  if wt "$protected" codex; then exit 1; fi
+  if dwt "$protected"; then exit 1; fi
+done
+git worktree add -qd "$scratch/detached" HEAD
+(cd "$scratch/detached"; if dwt; then exit 1; fi)
+[[ -d "$scratch/detached" ]]
 export EXPECTED_BRANCH=retry EXPECTED_TREE="$scratch/wt-retry" FAIL_LAUNCH=1
 if wt retry codex; then exit 1; fi
 [[ $(git -C "$EXPECTED_TREE" branch --show-current) == retry ]]
+unset FAIL_LAUNCH
+wt retry codex
 git remote set-url origin "$scratch/missing"
 if wt offline codex; then exit 1; fi
 [[ ! -e "$scratch/wt-offline" ]]

@@ -28,7 +28,17 @@ A fresh Neovim install gets [Kickstart](https://github.com/nvim-lua/kickstart.nv
 
 ## Start a task in cmux
 
-From a Git repo in cmux, run `wt fix/login claude` or `wt fix/login codex`. Install the selected agent CLI first. The command creates the branch from the latest commit on the default branch of `origin`. It opens a sibling checkout named `wt-fix-login`, with Neovim on the left and the agent on the right. Local-only files such as `.env` stay in the original checkout.
+Run these from anywhere inside the repo. Install the selected agent CLI first.
+
+| Command | Behavior |
+| --- | --- |
+| `wt fix/login claude` or `wt fix/login codex` | Open a fresh cmux workspace with Neovim on the left and the selected agent on the right. Reuse the worktree registered for that branch, including one created by an agent under a different folder name. |
+| `dwt fix/login` | Remove the branch’s clean worktree and keep the branch. If the current shell is inside it, move the shell to the primary checkout. |
+| `dwt` | In a task worktree, remove that checkout. In the primary checkout, list worktrees for you to choose from. |
+
+If the task has no checkout, `wt` creates a sibling directory such as `wt-fix-login`. It uses the existing local branch first, then a branch on `origin`, and otherwise starts a new branch from the remote default commit. Both commands protect `main`, the primary checkout, and the default branch of `origin`. When `origin` is configured they contact it to verify its current default. A detached worktree needs a branch name before these commands can target it.
+
+Save your buffers and stop the agent before cleanup. Locked worktrees, uncommitted changes, and untracked files reported by Git block removal. Git-ignored files such as a local `.env` can be removed with the directory. Close the cmux workspace yourself when finished.
 
 Agents launched by `wt` skip tool approval prompts. Codex also runs without its sandbox. Either agent can affect files outside the worktree with your account's permissions.
 
