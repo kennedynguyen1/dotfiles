@@ -1,4 +1,6 @@
 brew "neovim"
+brew "ripgrep"
+brew "tree-sitter-cli"
 brew "powerlevel10k"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"

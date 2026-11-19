@@ -5,7 +5,6 @@ repo=$(cd "$(dirname "$0")" && pwd -P)
 config=${XDG_CONFIG_HOME:-$HOME/.config}
 zshrc=${ZDOTDIR:-$HOME}/.zshrc
 hook='[[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/personal.zsh" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/personal.zsh"'
-kickstart=8e35dbedb7966e3a95e1f26f9fc1179ab6c68db4
 
 if ! command -v brew >/dev/null; then
   echo "Install Homebrew from https://brew.sh, follow its shellenv instructions, then rerun ./setup." >&2
@@ -18,15 +17,10 @@ if ! /usr/bin/shlock -p "$$" -f "$lock"; then
   echo "Another setup is running, or the setup lock is inaccessible: $lock" >&2
   exit 1
 fi
-tmp=''
-cleanup() {
-  [[ -z "$tmp" ]] || rm -rf "$tmp"
-  rm -f "$lock"
-}
-trap cleanup EXIT
+trap 'rm -f "$lock"' EXIT
 
-sources=("$repo/zsh/p10k.zsh" "$repo/ghostty/config" "$repo/zsh/personal.zsh")
-targets=("$HOME/.p10k.zsh" "$config/ghostty/config" "$config/zsh/personal.zsh")
+sources=("$repo/zsh/p10k.zsh" "$repo/ghostty/config" "$repo/zsh/personal.zsh" "$repo/nvim")
+targets=("$HOME/.p10k.zsh" "$config/ghostty/config" "$config/zsh/personal.zsh" "$config/nvim")
 
 # Inspect every destination before installing or linking anything.
 for i in "${!targets[@]}"; do
@@ -35,6 +29,9 @@ for i in "${!targets[@]}"; do
   if [[ -L "$target" ]]; then
     if [[ "$target" -ef "$source_file" ]]; then continue; fi
     echo "Existing link points elsewhere: $target -> $(readlink "$target")" >&2
+    exit 1
+  elif [[ -d "$source_file" && -e "$target" ]]; then
+    echo "Back up $target outside that path, then rerun ./setup to link $source_file." >&2
     exit 1
   elif [[ -f "$target" ]]; then
     if ! cmp -s "$target" "$source_file"; then
@@ -51,18 +48,6 @@ if [[ -e "$zshrc" || -L "$zshrc" ]]; then
 fi
 
 brew bundle check --no-upgrade --file="$repo/Brewfile" >/dev/null || brew bundle install --no-upgrade --file="$repo/Brewfile"
-
-mkdir -p "$config"
-nvim="$config/nvim"
-if [[ ! -e "$nvim" && ! -L "$nvim" ]]; then
-  tmp=$(mktemp -d "$config/.kickstart.XXXXXXXX")
-  git clone --quiet --no-checkout https://github.com/nvim-lua/kickstart.nvim.git "$tmp/nvim"
-  git -C "$tmp/nvim" checkout --quiet --detach "$kickstart"
-  mv "$tmp/nvim" "$nvim"
-elif [[ "$(git -C "$nvim" rev-parse HEAD 2>/dev/null || true)" != "$kickstart" ]] ||
-     [[ -n "$(git -C "$nvim" status --porcelain 2>/dev/null)" ]]; then
-  echo "Keeping your existing Neovim configuration at $nvim."
-fi
 
 for i in "${!targets[@]}"; do
   target=${targets[i]}

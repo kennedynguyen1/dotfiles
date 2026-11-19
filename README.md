@@ -1,6 +1,6 @@
 # macOS dotfiles
 
-Keep your terminal settings in Git and use them across Macs. Run `./setup` on each Mac to install the tools and link Ghostty and Zsh to this repo. Edit a setting once, then commit, push, and pull to use it on another Mac.
+Keep your terminal settings in Git and use them across Macs. Run `./setup` on each Mac to install the tools and link Ghostty, Zsh, and Neovim to this repo. Edit a setting once, then commit, push, and pull to use it on another Mac.
 
 ## Set up a Mac
 
@@ -17,10 +17,13 @@ Open a fresh Zsh shell. Keep the clone in place because the live config paths be
 | Edit in the repo | Live config on your Mac | What it controls |
 | --- | --- | --- |
 | [ghostty/config](ghostty/config) | `~/.config/ghostty/config` | Font and colors in Ghostty and cmux |
+| [nvim/](nvim/) | `~/.config/nvim` | Kickstart, keymaps, Diffview, and plugin versions |
 | [zsh/p10k.zsh](zsh/p10k.zsh) | `~/.p10k.zsh` | Powerlevel10k prompt |
 | [zsh/personal.zsh](zsh/personal.zsh) | `~/.config/zsh/personal.zsh` | Shell plugins and worktree commands |
 
-The [Brewfile](Brewfile) lists the apps, fonts, and CLI tools. If you have no Neovim config, [setup](setup) installs a pinned [Kickstart](https://github.com/nvim-lua/kickstart.nvim) checkout. Neovim settings live in that separate checkout.
+The [Brewfile](Brewfile) lists the apps, fonts, and CLI tools. The [Neovim config](nvim/init.lua) is based on [Kickstart](https://github.com/nvim-lua/kickstart.nvim) and includes Diffview (`Space d o` to open, `Space d c` to close). On first launch, allow Neovim to install the plugins listed in its [lockfile](nvim/nvim-pack-lock.json).
+
+**Already have a Neovim config?** Setup stops if the config directory exists separately. Move it to an unused backup path, rerun `./setup`, and merge any settings you want to keep. For example, if `~/.config/nvim.backup` is unused, run `mv ~/.config/nvim ~/.config/nvim.backup`. Use your config directory instead if you set `XDG_CONFIG_HOME`.
 
 ## Sync a change
 
@@ -34,7 +37,7 @@ git commit -m "Adjust terminal font size"
 git push
 ```
 
-On your other Mac, run `git -C ~/dotfiles pull --ff-only`. The linked files update immediately. Reload your terminal config to see appearance changes, or open a fresh shell for Zsh changes. Rerun `./setup` when packages or config links change.
+On your other Mac, run `git -C ~/dotfiles pull --ff-only`. The linked files update immediately. Reload your terminal config to see appearance changes, or open a fresh shell for Zsh changes. Restart Neovim for editor changes. Rerun `./setup` when packages or config links change.
 
 ## Optional cmux worktree commands
 
