@@ -59,7 +59,7 @@ _wt_resolve() {
   return 0
 }
 
-wt() {
+cwt() {
   emulate -L zsh
   local agent_command
   case ${2-} in
@@ -68,7 +68,7 @@ wt() {
     CODEX) agent_command='codex --dangerously-bypass-approvals-and-sandbox' ;;
   esac
   if (( $# != 2 )) || [[ -z ${agent_command:-} ]]; then
-    print -u2 'Usage: wt <branch> <claude|codex|CLAUDE|CODEX> (uppercase bypasses approvals)'
+    print -u2 'Usage: cwt <branch> <claude|codex|CLAUDE|CODEX> (uppercase bypasses approvals)'
     return 2
   fi
   local branch=$1 agent=${2:l} primary='' tree='' default_tip='' remote_tip='' tool

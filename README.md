@@ -41,14 +41,14 @@ On your other Mac, run `git -C ~/dotfiles pull --ff-only`. The linked files upda
 Install your preferred agent CLI separately. In cmux, open a shell in your project and run:
 
 ```sh
-wt fix/login claude
+cwt fix/login claude
 ```
 
-This opens Neovim and Claude Code side by side. If the branch already has a checkout, `wt` reuses it wherever it lives. Otherwise it creates `../wt-fix-login`. New branches start at the latest commit on the default branch of `origin`.
+This opens Neovim and Claude Code side by side. If the branch already has a checkout, `cwt` reuses it wherever it lives. Otherwise it creates `../wt-fix-login`. New branches start at the latest commit on the default branch of `origin`.
 
 | Command | What it does |
 | --- | --- |
-| `wt fix/login codex` | Open the same branch in a fresh workspace with Codex. |
+| `cwt fix/login codex` | Open the same branch in a fresh workspace with Codex. |
 | `git worktree list` | List checked-out branches and their folders. |
 | `dwt fix/login` | Remove the clean checkout and keep the branch. |
 | `dwt` | Remove the current task checkout, or list checkouts if you’re in the primary one. |
