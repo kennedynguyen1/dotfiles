@@ -26,6 +26,10 @@ Your local `.zshrc` loads the linked shell settings through a single guarded lin
 
 A fresh Neovim install gets [Kickstart](https://github.com/nvim-lua/kickstart.nvim) at commit `8e35dbedb7966e3a95e1f26f9fc1179ab6c68db4`. Existing Neovim directories are preserved. Neovim edits live in that separate checkout. cmux currently uses its defaults.
 
+## Start a task in cmux
+
+From a Git repo in cmux, run `wt fix/login claude` or `wt fix/login codex`. Install the selected agent CLI first. The command creates the branch from the latest commit on the default branch of `origin`. For a repo called `myapp`, it opens a sibling checkout named `myapp-fix-login`, with Neovim on the left and the agent on the right. Local-only files such as `.env` stay in the original checkout.
+
 ## Share a change
 
 Edit a linked file at its usual path, then review and push from the repo. For example:
