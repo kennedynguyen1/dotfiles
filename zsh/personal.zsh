@@ -9,6 +9,9 @@ if [[ -n ${HOMEBREW_PREFIX:-} ]] || (( $+commands[brew] )); then
   unset _personal_brew_share
 fi
 
+alias CLAUDE='claude --dangerously-skip-permissions'
+alias CODEX='codex --dangerously-bypass-approvals-and-sandbox'
+
 # Set the caller's primary, tree, default_tip, and remote_tip from exact Git refs.
 _wt_resolve() {
   local branch=$1 field checkout refs value ref

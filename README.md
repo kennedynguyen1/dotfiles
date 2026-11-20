@@ -56,6 +56,6 @@ This opens Neovim and Claude Code side by side. If the branch already has a chec
 | `dwt fix/login` | Remove the clean checkout and keep the branch. |
 | `dwt` | Remove the current task checkout, or list checkouts if you’re in the primary one. |
 
-Use lowercase agent names for normal permissions. Uppercase `CLAUDE` and `CODEX` bypass approval prompts. `CODEX` also disables sandboxing.
+In a Zsh terminal or as the agent argument to `cwt`, use lowercase `claude` and `codex` for normal permissions. Uppercase `CLAUDE` and `CODEX` bypass approval prompts. `CODEX` also disables sandboxing.
 
 Before cleanup, save your edits and stop the agent. An ignored file such as `.env` is deleted along with its worktree, so keep a copy of anything you need.
