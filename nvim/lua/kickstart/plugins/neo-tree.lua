@@ -10,6 +10,9 @@ vim.pack.add {
 vim.keymap.set('n', '\\', '<Cmd>Neotree reveal<CR>', { desc = 'NeoTree reveal', silent = true })
 
 require('neo-tree').setup {
+  default_component_configs = {
+    indent = { with_expanders = true },
+  },
   filesystem = {
     window = {
       mappings = {
