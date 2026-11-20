@@ -14,6 +14,12 @@ require('neo-tree').setup {
     indent = { with_expanders = true },
   },
   filesystem = {
+    filtered_items = {
+      hide_dotfiles = false,
+      hide_gitignored = false,
+      hide_ignored = false,
+      hide_by_name = { '.git', '.svn', '.hg', '.DS_Store', 'Thumbs.db' },
+    },
     window = {
       mappings = {
         ['\\'] = 'close_window',
